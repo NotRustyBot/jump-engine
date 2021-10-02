@@ -1,0 +1,25 @@
+const { Updatable, UpdateHandler } = require("../handlers/updateHandler.js");
+const { assert } = require("./assert.js");
+
+//prepare
+class TestObject {
+    update(dt) {
+        this.value++;
+    }
+    constructor() {
+        this.value = 0;
+        UpdateHandler.AddLayer(UpdateHandler.layersEnum.control);
+        UpdateHandler.register(this, this.update, UpdateHandler.layersEnum.control);
+    }
+}
+
+let testObject = new TestObject();
+//test
+UpdateHandler.tps = 10;
+UpdateHandler.start();
+
+setTimeout(() => {
+    UpdateHandler.stop();
+    //assert
+    assert("Updatable-CancelsUpdate", testObject.value == 1);
+}, 110);
