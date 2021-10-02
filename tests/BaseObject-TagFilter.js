@@ -2,7 +2,7 @@ const { BaseObject, Tag, Tags } = require("../handlers/objectHandler.js");
 const { assert } = require("./assert");
 
 //prepare
-let customTags = { test: new Tag() };
+let customTags = {collisionObject: Tags.collisionObject, test: new Tag() };
 class TestObject extends BaseObject {
     constructor() {
         super();
@@ -25,4 +25,4 @@ Tag.for([testObject], customTags.test, (e) => {
 });
 
 //assert
-assert("BaseObject-TagFilter",testObject.value == 1);
+assert("BaseObject-TagFilter",testObject.value == 1, testObject.value);

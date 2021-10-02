@@ -4,7 +4,7 @@
   "description": "Engine for Jumpout",
   "main": "index.js",
   "scripts": {
-    "test": "exit 1"
+    "test": "node tests/tests.js"
   },
   "author": "",
   "license": "ISC",

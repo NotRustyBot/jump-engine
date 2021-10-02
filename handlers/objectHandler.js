@@ -7,12 +7,14 @@ class BaseObject {
         this.id = BaseObject.index++;
         /** @type {Set<Tag>} */
         this.tags = new Set();
+        this.tagBits = 0;
     }
 
     /**
      * @param {Tag} tag
      */
     tag(tag) {
+        this.tagBits = this.tagBits | tag.bitMask;
         this.tags.add(tag);
         tag.members.add(this);
     }
@@ -21,8 +23,16 @@ class BaseObject {
      * @param {Tag} tag
      */
     untag(tag) {
+        this.tagBits = this.tagBits & ~tag.bitMask;
         this.tags.delete(tag);
         tag.members.delete(this);
+    }
+
+    /**
+    * @param {Tag} tag
+    */
+    hasTag(tag) {
+        return (this.tagBits & tag.bitMask) != 0;
     }
 
     remove() {
@@ -34,38 +44,48 @@ exports.BaseObject = BaseObject;
 
 class Tag {
     constructor() {
+        if (Tag.bitIndex > 31) {
+            throw new Error("Cannot create more than 32 tags.");
+        }
+
         this.members = new Set();
+        this.bitIndex = Tag.bitIndex++;
+        this.bitMask = 1 << this.bitIndex;
     }
 
     /**
-     * @param {Iterable<BaseObject>} set
-     * @param {tag} tag
+     * @param {Array<BaseObject>} set
+     * @param {Tag} tag
      */
     static filter(set, tag) {
         let output = [];
-        set.forEach((e) => {
-            if (tag.members.has(e)) {
+
+        for (const e of set) {
+            if (e.hasTag(tag)) {
                 output.push(e);
             }
-        });
+        }
+
         return output;
     }
 
     /**
-     * @param {Iterable<BaseObject>} set
+     * @param {ArrayLike<BaseObject>} set
      * @param {tag} tag
      * @param {Function} func
      */
 
     static for(set, tag, func) {
-        set.forEach((e) => {
-            if (tag.members.has(e)) {
+        for (const e of set) {
+            if (e.hasTag(tag)) {
                 func(e);
             }
-        });
+        }
     }
+
+    static bitIndex = 0;
 }
 
-let Tags = {};
+let Tags = { collisionObject: new Tag() };
 exports.Tag = Tag;
-exports.Tag = Tag;
+exports.Tags = Tags;

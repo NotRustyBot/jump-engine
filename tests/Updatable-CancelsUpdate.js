@@ -9,7 +9,7 @@ class TestObject {
     constructor() {
         this.value = 0;
         UpdateHandler.AddLayer(UpdateHandler.layersEnum.control);
-        UpdateHandler.register(this, this.update, UpdateHandler.layersEnum.control);
+        UpdateHandler.register((dt) => this.update(dt), UpdateHandler.layersEnum.control);
     }
 }
 
@@ -21,5 +21,5 @@ UpdateHandler.start();
 setTimeout(() => {
     UpdateHandler.stop();
     //assert
-    assert("Updatable-CancelsUpdate", testObject.value == 1);
+    assert("Updatable-CancelsUpdate", testObject.value == 1, testObject.value);
 }, 110);

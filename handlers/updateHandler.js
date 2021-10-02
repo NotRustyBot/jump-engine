@@ -7,13 +7,13 @@ class UpdateLayer {
     }
 
     update(dt) {
-        this.subscribers.forEach((sub) => {
-            sub.func.call(sub.obj);
+        this.subscribers.forEach((subscriber) => {
+            subscriber(dt);
         });
     }
 
-    register(obj, func) {
-        this.subscribers.set(this.index, { obj: obj, func: func });
+    register(func) {
+        this.subscribers.set(this.index, func);
         this.index++;
     }
 }
@@ -49,8 +49,8 @@ class UpdateHandler {
 
     static layersEnum = { control: 0, physics: 1, network: 2 };
 
-    static register(obj, func, layer) {
-        this.layers[layer].register(obj, func);
+    static register(func, layer) {
+        this.layers[layer].register(func);
     }
 }
 
