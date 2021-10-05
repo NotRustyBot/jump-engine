@@ -8,7 +8,6 @@ class TestObject {
     }
     constructor() {
         this.value = 0;
-        UpdateHandler.AddLayer(UpdateHandler.layersEnum.control);
         UpdateHandler.register((dt) => this.update(dt), UpdateHandler.layersEnum.control);
     }
 }

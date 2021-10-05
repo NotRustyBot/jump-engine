@@ -19,8 +19,8 @@ class UpdateLayer {
 }
 
 class UpdateHandler {
-    /** @type {UpdateLayer[]} */
-    static layers = [];
+    /** @type {Map<number,UpdateLayer>} */
+    static layers = new Map();
     static tps = 30;
     static intervalId;
     static lastTick;
@@ -29,9 +29,7 @@ class UpdateHandler {
         this.intervalId = setInterval(() => {
             let dt = Date.now() - this.lastTick;
             this.lastTick = Date.now();
-            for (let i = 0; i < this.layers.length; i++) {
-                this.layers[i].update(dt);
-            }
+            this.layers.forEach((l)=> l.update(dt))
         }, 1000 / this.tps);
     }
     static stop() {
@@ -41,16 +39,20 @@ class UpdateHandler {
     static index = 0;
 
     static AddLayer(id) {
-        this.layers.push(new UpdateLayer(id));
-        this.layers.sort((a, b) => {
-            return a.id - b.id;
-        });
+        this.layers.set(id, new UpdateLayer(id));
     }
 
     static layersEnum = { control: 0, physics: 1, network: 2 };
 
+    /**
+     * @param {Function} func
+     * @param {number} layer
+     */
     static register(func, layer) {
-        this.layers[layer].register(func);
+        if (this.layers.get(layer)== undefined) {
+            this.AddLayer(layer);
+        }
+        this.layers.get(layer).register(func);
     }
 }
 
