@@ -10,15 +10,17 @@ class PhysicsObject extends BaseObject {
         this.layer;
         /**@type {Set<Area>} */
         this.inAreas = new Set();
+        /** @type {number} */
+        this.rotation;
         /**
-         * @type {number} READ ONLY size length of the bounding box
+         * @type {number} READ ONLY length of the bounding box
          */
         this.size = 0;
         this._boundOffsets = [
             new Vector(0, 0),
             new Vector(0, 0),
             new Vector(0, 0),
-            new Vector(0, 0)
+            new Vector(0, 0),
         ];
     }
 
@@ -34,9 +36,91 @@ class PhysicsObject extends BaseObject {
             new Vector(size, -size),
         ];
     }
+
+    checkCollision() {}
 }
 
 exports.PhysicsObject = PhysicsObject;
+
+class HitBox {
+    constructor() {
+        this.shapes = [];
+    }
+
+    addShape() {}
+}
+
+class Shape {
+    constructor() {}
+    /**
+     * @param {Shape} shape
+     */
+    checkCollision(shape) {}
+}
+
+class Line extends Shape {
+    constructor(x1, y1, x2, y2) {
+        super();
+        this.x1 = x1;
+        this.x2 = x2;
+        this.y1 = y1;
+        this.y2 = y2;
+    }
+
+    /**
+     * @param {Shape} shape
+     */
+    checkCollision(shape) {
+        if (shape instanceof Cicrcle) {
+        } else if (shape instanceof Line) {
+        }
+    }
+}
+
+class Cicrcle extends Shape() {
+    constructor(x, y, r) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.r = r;
+    }
+
+    /**
+     * @param {Shape} shape
+     */
+    checkCollision(shape) {
+        if (shape instanceof Cicrcle) {
+        } else if (shape instanceof Line) {
+        }
+    }
+}
+
+/**
+ * @param {Line} l1
+ * @param {Line} l2
+ * @returns {Vector} point of intersection
+ */
+function LineLineIntersert(l1, l2){
+
+}
+
+/**
+ * @param {Line} l
+ * @param {Circle} c
+ * @returns {Vector} point of intersection
+ */
+ function LineCircleIntersert(l, c){
+
+}
+
+/**
+ * @param {Line} c1
+ * @param {Line} c2
+ * @returns {Vector} point of intersection
+ */
+ function CircleCircleIntersert(c1, c2){
+
+}
 
 class MobileObject extends PhysicsObject {
     constructor() {
@@ -53,8 +137,10 @@ class MobileObject extends PhysicsObject {
      * @param {number} dt
      */
     moveUpdate(dt) {
-        let next = this.position.result().add(this.velocity.result().mult(dt));
-        Layer.moveObject(this, next);
+        if (this.velocity.x + this.velocity.y != 0) {
+            let next = this.position.result().add(this.velocity.result().mult(dt));
+            Layer.moveObject(this, next);
+        }
     }
 }
 
@@ -204,10 +290,12 @@ class Layer {
         let updateRequired = false;
         for (let i = 0; i < physicsObject._boundOffsets.length; i++) {
             const vect = physicsObject._boundOffsets[i];
-            if (this.toGridAxis(orig.x + vect.x) != this.toGridAxis(position.x + vect.x) || 
-            this.toGridAxis(orig.y + vect.y) != this.toGridAxis(position.y + vect.y)) {
+            if (
+                this.toGridAxis(orig.x + vect.x) != this.toGridAxis(position.x + vect.x) ||
+                this.toGridAxis(orig.y + vect.y) != this.toGridAxis(position.y + vect.y)
+            ) {
                 updateRequired = true;
-                break
+                break;
             }
         }
 

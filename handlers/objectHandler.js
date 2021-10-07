@@ -1,3 +1,6 @@
+/**
+ * All game objects should inherit BaseObject
+ */
 class BaseObject {
     /**@type {Map<number, BaseObject>} */
     static baseObjects = new Map();
@@ -10,7 +13,7 @@ class BaseObject {
         this.tagBits = 0;
     }
 
-    /**
+    /** Add a tag to this object
      * @param {Tag} tag
      */
     tag(tag) {
@@ -19,7 +22,7 @@ class BaseObject {
         tag.members.add(this);
     }
 
-    /**
+    /** Remove a tag from this object
      * @param {Tag} tag
      */
     untag(tag) {
@@ -28,13 +31,18 @@ class BaseObject {
         tag.members.delete(this);
     }
 
-    /**
+    /** Checks if this object has a tag
     * @param {Tag} tag
+    * @returns {boolean} `true` if object has this tag
     */
     hasTag(tag) {
+        //return this.tags.has(tag);
         return (this.tagBits & tag.bitMask) != 0;
     }
 
+    /**
+     * Removes this object 
+     */
     remove() {
         BaseObject.baseObjects.delete(this);
     }
@@ -48,14 +56,16 @@ class Tag {
             throw new Error("Cannot create more than 32 tags.");
         }
 
+        /**@type {Set<BaseObject>} Set of all objects with this tag */
         this.members = new Set();
         this.bitIndex = Tag.bitIndex++;
         this.bitMask = 1 << this.bitIndex;
     }
 
-    /**
+    /** Creates new array containing only tagged objects
      * @param {Array<BaseObject>} set
      * @param {Tag} tag
+     * @returns {BaseObject[]} filtered array
      */
     static filter(set, tag) {
         let output = [];
@@ -69,7 +79,7 @@ class Tag {
         return output;
     }
 
-    /**
+    /** Runs `func` for every tagged member of `set`
      * @param {ArrayLike<BaseObject>} set
      * @param {tag} tag
      * @param {Function} func

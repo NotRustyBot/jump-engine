@@ -9,7 +9,7 @@ let layer = new Layer();
 testObject.position.x = 500;
 testObject.position.y = 950;
 testObject.setSize(100);
-testObject.velocity = new Vector(0, -10);
+testObject.velocity = new Vector(0, -100);
 testObject.layer = layer;
 start();
 
