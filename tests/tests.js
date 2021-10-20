@@ -9,6 +9,7 @@ setTimeout(() => {
         require("./BaseObject-TagFilter");
         require("./PhysicsObject-Area");
         require("./MobileObject-Move");
+        require("./NetworkObject-DataIntegrity");
         testStats();
         process.exit();
     }, 200);

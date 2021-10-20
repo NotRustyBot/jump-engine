@@ -61,7 +61,7 @@ class Vector {
     }
 
     inbound(bound) {
-        return this.x < bound && this.x > -bound && this.y < bound && this.y > -bound;
+        return this.x < bound && this.x > -bound && this.y < b3ound && this.y > -bound;
     }
 
     static fromAngle(r) {
@@ -75,6 +75,10 @@ class Vector {
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
+}
+
+Vector.prototype.toString = function(){
+    return "[X: " +this.x.toFixed(3)+ " Y: " + this.y.toFixed(3) + "]";
 }
 
 exports.Vector = Vector;

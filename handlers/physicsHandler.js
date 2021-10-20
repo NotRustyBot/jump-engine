@@ -44,10 +44,32 @@ exports.PhysicsObject = PhysicsObject;
 
 class HitBox {
     constructor() {
+        /**@type {Shape[]} */
         this.shapes = [];
+        this.size = 0;
     }
 
-    addShape() {}
+    /**
+     * @param {Shape} shape
+     */
+    addShape(shape) {
+        this.shapes.push(shape);
+    }
+
+    /**
+     * @param {HitBox} hitbox
+     * @param {Vector} relative
+     */
+    checkCollision(hitbox, relative) {
+        if (false) {
+            
+        }
+        for (const shape of this.shapes) {
+            for (const other of hitbox.shapes) {
+                shape.checkCollision(other);
+            }
+        }
+    }
 }
 
 class Shape {
@@ -72,12 +94,14 @@ class Line extends Shape {
      */
     checkCollision(shape) {
         if (shape instanceof Cicrcle) {
+            return LineCircleIntersert(this, shape);
         } else if (shape instanceof Line) {
+            return LineLineIntersert(this, shape);
         }
     }
 }
 
-class Cicrcle extends Shape() {
+class Cicrcle extends Shape {
     constructor(x, y, r) {
         super();
         this.x = x;
@@ -90,7 +114,9 @@ class Cicrcle extends Shape() {
      */
     checkCollision(shape) {
         if (shape instanceof Cicrcle) {
+            return CircleCircleIntersert(shape, this);
         } else if (shape instanceof Line) {
+            return LineCircleIntersert(shape, this);
         }
     }
 }
@@ -100,27 +126,21 @@ class Cicrcle extends Shape() {
  * @param {Line} l2
  * @returns {Vector} point of intersection
  */
-function LineLineIntersert(l1, l2){
-
-}
+function LineLineIntersert(l1, l2) {}
 
 /**
  * @param {Line} l
  * @param {Circle} c
  * @returns {Vector} point of intersection
  */
- function LineCircleIntersert(l, c){
-
-}
+function LineCircleIntersert(l, c) {}
 
 /**
  * @param {Line} c1
  * @param {Line} c2
  * @returns {Vector} point of intersection
  */
- function CircleCircleIntersert(c1, c2){
-
-}
+function CircleCircleIntersert(c1, c2) {}
 
 class MobileObject extends PhysicsObject {
     constructor() {
