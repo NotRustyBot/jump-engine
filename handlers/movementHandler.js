@@ -17,35 +17,35 @@ class MovementHandler{
     forward(dt, throttle){
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.parent.rotation);
-        this.parent.velocity.add(direction.mult(dt*throttle));
+        this.parent.velocity.add(direction.mult(dt*throttle*this.powerBonus));
     }
 
     backward(dt, throttle){
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.parent.rotation + Math.PI);
-        this.parent.velocity.add(direction.mult(dt*throttle));
+        this.parent.velocity.add(direction.mult(dt*throttle*this.powerBonus));
     }
 
     left(dt, throttle){
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.parent.rotation + Math.PI*3/2);
-        this.parent.velocity.add(direction.mult(dt*throttle));
+        this.parent.velocity.add(direction.mult(dt*throttle*this.powerBonus));
     }
 
     right(dt, throttle){
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.parent.rotation + Math.PI/2);
-        this.parent.velocity.add(direction.mult(dt*throttle));
+        this.parent.velocity.add(direction.mult(dt*throttle*this.powerBonus));
     }
 
     clockwise(dt, throttle){
         throttle = throttle || 1;
-        this.parent.rotation += this.stats.rotationSpeed * dt * throttle;
+        this.parent.rotation += this.stats.rotationSpeed * dt * throttle * this.rotationBonus;
     }
 
     anticlockwise(dt, throttle){
         throttle = throttle || 1;
-        this.parent.rotation -= this.stats.rotationSpeed * dt * throttle;
+        this.parent.rotation -= this.stats.rotationSpeed * dt * throttle * this.rotationBonus;
     }
 
     cap(){
@@ -54,3 +54,5 @@ class MovementHandler{
         }
     }
 }
+
+exports.MovementHandler = MovementHandler;

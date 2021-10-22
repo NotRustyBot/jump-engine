@@ -1,15 +1,13 @@
 class Vector {
-    /**@type {number} X coordinate */
-    x;
-    /**@type {number} Y coordinate */
-    y;
-    /**
+     /**
      *Creates new 2D vector
      * @param {number} x
      * @param {number} y
      */
     constructor(x, y) {
+        /**@type {number} X coordinate */
         this.x = x || 0;
+        /**@type {number} Y coordinate */
         this.y = y || 0;
     }
 
@@ -17,7 +15,7 @@ class Vector {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    lengthSquared(){
+    lengthSquared() {
         return this.x * this.x + this.y * this.y;
     }
 
@@ -64,6 +62,10 @@ class Vector {
         return this.x < bound && this.x > -bound && this.y < b3ound && this.y > -bound;
     }
 
+    toString() {
+        return "[X: " + this.x.toFixed(3) + " Y: " + this.y.toFixed(3) + "]";
+    }
+
     static fromAngle(r) {
         return new Vector(Math.cos(r), Math.sin(r));
     }
@@ -75,10 +77,6 @@ class Vector {
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
-}
-
-Vector.prototype.toString = function(){
-    return "[X: " +this.x.toFixed(3)+ " Y: " + this.y.toFixed(3) + "]";
 }
 
 exports.Vector = Vector;
