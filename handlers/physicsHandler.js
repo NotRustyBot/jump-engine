@@ -13,7 +13,7 @@ class PhysicsObject extends BaseObject {
         /** @type {number} */
         this.rotation;
         /**
-         * @type {number} READ ONLY length of the bounding box
+         * @type {number} `READ ONLY` length of the bounding box
          */
         this.size = 0;
         this._boundOffsets = [
@@ -36,111 +36,71 @@ class PhysicsObject extends BaseObject {
             new Vector(size, -size),
         ];
     }
-
-    checkCollision() {}
 }
 
 exports.PhysicsObject = PhysicsObject;
 
 class HitBox {
-    constructor() {
-        /**@type {Shape[]} */
-        this.shapes = [];
-        this.size = 0;
-    }
-
     /**
-     * @param {Shape} shape
+     * @param {PhysicsObject} parent
+     * @param {Vector[]} polygon
      */
-    addShape(shape) {
-        this.shapes.push(shape);
+    constructor(parent, polygon) {
+        this.polygon = polygon;
+        this.rotated = polygon;
+        this.size = 0;
+        this.parent = parent;
     }
 
     /**
      * @param {HitBox} hitbox
-     * @param {Vector} relative
+     * @returns {CollisionResult}
      */
-    checkCollision(hitbox, relative) {
-        if (false) {
-            
-        }
-        for (const shape of this.shapes) {
-            for (const other of hitbox.shapes) {
-                shape.checkCollision(other);
-            }
-        }
-    }
-}
-
-class Shape {
-    constructor() {}
-    /**
-     * @param {Shape} shape
-     */
-    checkCollision(shape) {}
-}
-
-class Line extends Shape {
-    constructor(x1, y1, x2, y2) {
-        super();
-        this.x1 = x1;
-        this.x2 = x2;
-        this.y1 = y1;
-        this.y2 = y2;
-    }
+    checkCollision(hitbox) {}
 
     /**
-     * @param {Shape} shape
+     * @param {Vector} from
+     * @param {Vector} to
+     * @returns {boolean | Vector} false or hit position
      */
-    checkCollision(shape) {
-        if (shape instanceof Cicrcle) {
-            return LineCircleIntersert(this, shape);
-        } else if (shape instanceof Line) {
-            return LineLineIntersert(this, shape);
-        }
-    }
-}
-
-class Cicrcle extends Shape {
-    constructor(x, y, r) {
-        super();
-        this.x = x;
-        this.y = y;
-        this.r = r;
-    }
+    rayCast(forrm, to) {}
 
     /**
-     * @param {Shape} shape
+     * @param {Vector[]} polygon
+     * @returns {number} side of smallest AABB that the polygon can always fit
      */
-    checkCollision(shape) {
-        if (shape instanceof Cicrcle) {
-            return CircleCircleIntersert(shape, this);
-        } else if (shape instanceof Line) {
-            return LineCircleIntersert(shape, this);
-        }
+    static getSize(polygon) {}
+
+    /**
+     * @param {number} angle
+     */
+    rotatePolygon(angle) {}
+}
+exports.HitBox = HitBox;
+
+class CollisionResult {
+    /**
+     * @param {boolean} hit
+     * @param {Vector} overlap
+     * @param {Vector} position
+     * @param {PhysicsObject} object1
+     * @param {PhysicsObject} object2
+     */
+    constructor(hit, overlap, position, object1, object2) {
+        /** @type {boolean} */
+        this.hit;
+        /** @type {Vector} o tolik budu posouvat objekty*/
+        this.overlap;
+        /** @type {Vector} tady budu spawnovat pártikly*/
+        this.position;
+        /** @type {PhysicsObject} parent hitboxu*/
+        this.object1;
+        /** @type {PhysicsObject} parent hitboxu*/
+        this.object2;
     }
 }
 
-/**
- * @param {Line} l1
- * @param {Line} l2
- * @returns {Vector} point of intersection
- */
-function LineLineIntersert(l1, l2) {}
-
-/**
- * @param {Line} l
- * @param {Circle} c
- * @returns {Vector} point of intersection
- */
-function LineCircleIntersert(l, c) {}
-
-/**
- * @param {Line} c1
- * @param {Line} c2
- * @returns {Vector} point of intersection
- */
-function CircleCircleIntersert(c1, c2) {}
+exports.CollisionResult = CollisionResult;
 
 class MobileObject extends PhysicsObject {
     constructor() {

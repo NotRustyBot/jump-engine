@@ -96,6 +96,4 @@ class Tag {
     static bitIndex = 0;
 }
 
-let Tags = { collisionObject: new Tag() };
 exports.Tag = Tag;
-exports.Tags = Tags;
