@@ -55,28 +55,61 @@ class HitBox {
     /**
      * @param {HitBox} hitbox
      * @returns {CollisionResult}
+     * I will be following GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
      */
-    checkCollision(hitbox) {}
+    checkCollision(hitbox) { }
 
     /**
      * @param {Vector} from
      * @param {Vector} to
      * @returns {boolean | Vector} false or hit position
      */
-    rayCast(forrm, to) {}
+    rayCast(forrm, to) { }
 
     /**
      * @param {Vector[]} polygon
      * @returns {number} side of smallest AABB that the polygon can always fit
      */
-    static getSize(polygon) {}
+    static getSize(polygon) {
+        let max = 0;
+        polygon.forEach(vertex => {
+            let length = vertex.length();
+            max = length > max ? length : max;
+        });
+        return max;
+    }
 
     /**
      * @param {number} angle
      */
-    rotatePolygon(angle) {}
+    rotatePolygon(angle) {
+        let matrix = Matrix2x2([[Math.cos(angle), Math.sin(angle)], [-Math.sin(angle), Math.cos(angle)]]);
+        this.rotated = [];
+        this.polygon.forEach(vertex => {
+            this.rotated.push(matrix.transform(vertex));
+        });
+    }
 }
 exports.HitBox = HitBox;
+
+class Matrix2x2 {
+    /**
+     * @param {number[][]} values values[row][colum]
+     * @returns {Matrix2x2}
+     */
+    constructor(values) {
+        this.values = values;
+    }
+
+    /**
+     * @param {Vector} vect
+     * @return {Vector}
+     */
+    transform(vect) {
+        return Vector([vect[0] * this.values[0][0] + vect[1] * this.values[0][1], vect[1] * this.values[1][0] + vect[2] * this.values[1][1]]);
+    }
+}
+
 
 class CollisionResult {
     /**
@@ -107,7 +140,7 @@ class MobileObject extends PhysicsObject {
         super();
         this.velocity = new Vector();
         UpdateHandler.register(
-            /**@param {Number} dt*/ (dt) => {
+            /**@param {Number} dt*/(dt) => {
                 this.moveUpdate();
             },
             UpdateHandler.layersEnum.physics
