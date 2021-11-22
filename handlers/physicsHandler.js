@@ -1,5 +1,5 @@
 const { BaseObject } = require("./objectHandler");
-const { Vector } = require("./types");
+const { Vector, Matrix2x2 } = require("./types");
 const { UpdateHandler } = require("./updateHandler");
 
 class PhysicsObject extends BaseObject {
@@ -55,9 +55,53 @@ class HitBox {
     /**
      * @param {HitBox} hitbox
      * @returns {CollisionResult}
-     * I will be following GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
+     * Implementation of GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
      */
-    checkCollision(hitbox) { }
+    checkCollision(hitbox) {
+        let center = this.parent.position.diff(target.parent.position); // in standart GJK it si zero
+        let direction = this.parent.position.diff(hitbox.parent.position);
+        let simplex = [this.#support(direction, hitbox.rotated)];
+        direction = center.diff(simplex[0]);
+        while (true) {
+            let A = this.#support(direction, hitbox.rotated);
+            if (Vector.dot(center.diff(A), direction) <= 0)
+                return CollisionResult(false);
+            simplex.push(A);
+            if (simplex.length == 2) {
+                direction = Vector.tripleCross(simplex[0], simplex[1], simplex[0]);
+            } else if (simplex.length == 3) {
+                let AB = simplex[1].diff(simplex[2]);
+                let AC = simplex[0].diff(simplex[2]);
+                let AO = center.diff(simplex[2]);
+                let ABcross = Vector.tripleCross(AC, AB, AB);
+                let ACcross = Vector.tripleCross(AB, AC, AC);
+                if (Vector.dot(ABcross, AO) > 0) {
+                    simplex = [simplex[1], simplex[2]];
+                    direction = ABcross;
+                } else if (Vector.dot(ACcross, AO) > 0) {
+                    simplex = [simplex[0], simplex[2]];
+                    direction = ACcross;
+                } else {
+                    break; // center found in triangle!
+                }
+            } else {
+                throw new Error("Honza má chybu v chceckCollision funkci");
+            }
+        }
+        let edges = []; // [[{Vector}, {Vector}, {number}],...]
+        [[0, 1], [1, 2], [2, 0]].forEach(element => { edges.push([simplex[element[0]], simplex[element[1]], Vector.distanceToLine(simplex[element[0]], simplex[element[1]], center)]); });
+        while (true) {
+            let shortest = [];
+            let mindist = Infinity;
+            edges.forEach(edge => {
+                if (edge[2] < mindist) {
+                    mindist = edge[2];
+                    shortest = edge;
+                }
+            });
+            direction = Vector.tripleCross() // TODO
+        }
+    }
 
     /**
      * @param {Vector} from
@@ -83,33 +127,42 @@ class HitBox {
      * @param {number} angle
      */
     rotatePolygon(angle) {
-        let matrix = Matrix2x2([[Math.cos(angle), Math.sin(angle)], [-Math.sin(angle), Math.cos(angle)]]);
+        let matrix = Matrix2x2.fromAngle(angle);
         this.rotated = [];
         this.polygon.forEach(vertex => {
             this.rotated.push(matrix.transform(vertex));
         });
     }
+
+    /**
+     * @param {Vector[]} polygon
+     * @param {Vector} direction can be any nonzero length
+     * @return {Vector} furthest point of shape in that direction
+     */
+    #getFurthestPoint(polygon, direction) {
+        let max = 0;
+        let result = new Vector(polygon[0].x, polygon[0].y);
+        polygon.forEach(vertex => {
+            let len = Vector.dot(direction, vertex);
+            if (len > max) {
+                max = len;
+                result = vertex;
+            }
+        });
+        return result;
+    }
+
+    /**
+     * @param {Vector} direction
+     * @param {Vector[]} shape
+     * @return {Vector} point on simplex in that direction
+     */
+    #support(direction, shape) {
+        return this.#getFurthestPoint(this.rotated, direction).sub(this.#getFurthestPoint(shape, direction));
+    }
+
 }
 exports.HitBox = HitBox;
-
-class Matrix2x2 {
-    /**
-     * @param {number[][]} values values[row][colum]
-     * @returns {Matrix2x2}
-     */
-    constructor(values) {
-        this.values = values;
-    }
-
-    /**
-     * @param {Vector} vect
-     * @return {Vector}
-     */
-    transform(vect) {
-        return Vector([vect[0] * this.values[0][0] + vect[1] * this.values[0][1], vect[1] * this.values[1][0] + vect[2] * this.values[1][1]]);
-    }
-}
-
 
 class CollisionResult {
     /**

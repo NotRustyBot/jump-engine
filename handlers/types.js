@@ -1,9 +1,9 @@
 class Vector {
-     /**
-     *Creates new 2D vector
-     * @param {number} x
-     * @param {number} y
-     */
+    /**
+    *Creates new 2D vector
+    * @param {number} x
+    * @param {number} y
+    */
     constructor(x, y) {
         /**@type {number} X coordinate */
         this.x = x || 0;
@@ -66,6 +66,15 @@ class Vector {
         return "[X: " + this.x.toFixed(3) + " Y: " + this.y.toFixed(3) + "]";
     }
 
+    /**
+     * @param {Vector} vect
+     * @return {Vector} (v1 x v2) x v3
+     */
+    static tripleCross(v1, v2, v3) {
+        let cross = v1.x * v2.y - v1.y * v2.x;
+        return new Vector(-v3.y * cross, v3.x * cross);
+    }
+
     static fromAngle(r) {
         return new Vector(Math.cos(r), Math.sin(r));
     }
@@ -77,6 +86,49 @@ class Vector {
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
-}
 
+    static diff(v1, v2) {
+        return new Vector(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    /**
+     * @param {Vector} A point on line
+     * @param {Vector} B point on line
+     * @param {Vector} C distanced point
+     * @return {number}
+     * https://www.youtube.com/watch?v=KHuI9bXZS74
+     */
+    static distanceToLine(A, B, C) {
+        return Math.abs((C.x - A.x) * (-B.y + A.x) + (C.y - A.y) * (B.x - A.x)) /
+            Math.sqrt((-B.y + A.y) * (-B.y + A.y) + (B.x - A.x) * (B.x - A.x));
+    }
+}
 exports.Vector = Vector;
+
+class Matrix2x2 {
+    /**
+     * @param {number[][]} values values[row][colum]
+     * @returns {Matrix2x2}
+     */
+    constructor(values) {
+        this.values = values;
+    }
+
+    /**
+     * @param {number} angle
+     * @returns {Matrix2x2}
+     * create rotation matrix
+     */
+    static fromAngle(angle) {
+        return new Matrix2x2([[Math.cos(angle), Math.sin(angle)], [-Math.sin(angle), Math.cos(angle)]]);
+    }
+
+    /**
+     * @param {Vector} vect
+     * @return {Vector}
+     */
+    transform(vect) {
+        return Vector([vect[0] * this.values[0][0] + vect[1] * this.values[0][1], vect[1] * this.values[1][0] + vect[2] * this.values[1][1]]);
+    }
+}
+exports.Matrix2x2 = Matrix2x2;
