@@ -67,7 +67,9 @@ class Vector {
     }
 
     /**
-     * @param {Vector} vect
+     * @param {Vector} v1
+     * @param {Vector} v2
+     * @param {Vector} v3
      * @return {Vector} (v1 x v2) x v3
      */
     static tripleCross(v1, v2, v3) {
@@ -83,10 +85,19 @@ class Vector {
         return v1.x * v2.y - v1.y * v2.x;
     }
 
+    static add(v1, v2) {
+        return Vector(v1.x + v2.x, v1.y + v2.y)
+    }
+
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
 
+    /**
+     * @param {Vector} v1
+     * @param {Vector} v2
+     * @return {Vector}
+    */
     static diff(v1, v2) {
         return new Vector(v1.x - v2.x, v1.y - v2.y);
     }
@@ -101,6 +112,15 @@ class Vector {
     static distanceToLine(A, B, C) {
         return Math.abs((C.x - A.x) * (-B.y + A.x) + (C.y - A.y) * (B.x - A.x)) /
             Math.sqrt((-B.y + A.y) * (-B.y + A.y) + (B.x - A.x) * (B.x - A.x));
+    }
+
+    /**
+     * @param {Vector} v1
+     * @param {Vector} v2
+     * @return {boolean} two vectors have same values
+     */
+    static equals(v1, v2) {
+        return v1.x == v2.x && v1.y == v2.y
     }
 }
 exports.Vector = Vector;

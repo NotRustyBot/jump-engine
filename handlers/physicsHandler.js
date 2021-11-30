@@ -88,8 +88,12 @@ class HitBox {
                 throw new Error("Honza má chybu v chceckCollision funkci");
             }
         }
+
+        // here ends GJK algorithm and start my algorithm
+
         let edges = []; // [[{Vector}, {Vector}, {number}],...]
         [[0, 1], [1, 2], [2, 0]].forEach(element => { edges.push([simplex[element[0]], simplex[element[1]], Vector.distanceToLine(simplex[element[0]], simplex[element[1]], center)]); });
+        let i = 0; // debug
         while (true) {
             let shortest = [];
             let mindist = Infinity;
@@ -99,7 +103,24 @@ class HitBox {
                     shortest = edge;
                 }
             });
-            direction = Vector.tripleCross() // TODO
+            let vec1 = Vector.diff(shortest[0], shortest[1]);
+            let vec2 = Vector.diff(shortest[0], center);
+            direction = Vector.tripleCross(vec1, vec2, vec1);
+            let A = this.#support(direction, hitbox.rotated);
+            if (Vector.equals(A, shortest[0]) || Vector.equals(A, shortest[1])) {
+                let translationVect = direction.normalize(mindist);
+                return CollisionResult(true, translationVect, Vector.add(translationVect, this.parent.position), this.parent, hitbox.parent);
+            } else {
+                let B = shortest[0];
+                let C = shortest[1];
+                shortest[1] = A;
+                shortest[2] = Vector.distanceToLine(B, A, center); // This should update edges array
+                edges.push(C, A, Vector.distanceToLine(C, A, center));
+            }
+            i++; // debug
+            if (i > this.polygon.length) { // debug
+                throw new Error("Honza má chybu v chceckCollision funkci - zacyklil se");
+            }
         }
     }
 
