@@ -65,7 +65,7 @@ class HitBox {
         while (true) {
             let A = this.#support(direction, hitbox.rotated);
             if (Vector.dot(center.diff(A), direction) <= 0)
-                return CollisionResult(false);
+                return new CollisionResult(false);
             simplex.push(A);
             if (simplex.length == 2) {
                 direction = Vector.tripleCross(simplex[0], simplex[1], simplex[0]);
@@ -129,7 +129,7 @@ class HitBox {
      * @param {Vector} to
      * @returns {boolean | Vector} false or hit position
      */
-    rayCast(forrm, to) { }
+    rayCast(from, to) { }
 
     /**
      * @param {Vector[]} polygon
@@ -195,15 +195,15 @@ class CollisionResult {
      */
     constructor(hit, overlap, position, object1, object2) {
         /** @type {boolean} */
-        this.hit;
+        this.hit = hit;
         /** @type {Vector} o tolik budu posouvat objekty*/
-        this.overlap;
+        this.overlap = overlap;
         /** @type {Vector} tady budu spawnovat pártikly*/
-        this.position;
+        this.position = position;
         /** @type {PhysicsObject} parent hitboxu*/
-        this.object1;
+        this.object1 = object1;
         /** @type {PhysicsObject} parent hitboxu*/
-        this.object2;
+        this.object2 = object2;
     }
 }
 

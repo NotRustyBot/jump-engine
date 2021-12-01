@@ -36,6 +36,10 @@ class Vector {
         return this;
     }
 
+    diff(vector){
+        return new Vector(this.x - vector.x, this.y - vector.y);
+    }
+
     mult(magnitude) {
         this.x = this.x * magnitude;
         this.y = this.y * magnitude;
