@@ -36,7 +36,11 @@ class Vector {
         return this;
     }
 
-    diff(vector){
+    /**
+     * @param {Vector} vector
+     * @return {Vector}
+     */
+    diff(vector) {
         return new Vector(this.x - vector.x, this.y - vector.y);
     }
 
@@ -95,15 +99,6 @@ class Vector {
 
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
-    }
-
-    /**
-     * @param {Vector} v1
-     * @param {Vector} v2
-     * @return {Vector}
-    */
-    static diff(v1, v2) {
-        return new Vector(v1.x - v2.x, v1.y - v2.y);
     }
 
     /**

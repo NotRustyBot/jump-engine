@@ -58,12 +58,12 @@ class HitBox {
      * Implementation of GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
      */
     checkCollision(hitbox) {
-        let center = this.parent.position.diff(target.parent.position); // in standart GJK it si zero
+        let center = this.parent.position.diff(hitbox.parent.position); // in standart GJK it si zero
         let direction = this.parent.position.diff(hitbox.parent.position);
-        let simplex = [this.#support(direction, hitbox.rotated)];
+        let simplex = [this._support(direction, hitbox.rotated)];
         direction = center.diff(simplex[0]);
         while (true) {
-            let A = this.#support(direction, hitbox.rotated);
+            let A = this._support(direction, hitbox.rotated);
             if (Vector.dot(center.diff(A), direction) <= 0)
                 return new CollisionResult(false);
             simplex.push(A);
@@ -103,10 +103,10 @@ class HitBox {
                     shortest = edge;
                 }
             });
-            let vec1 = Vector.diff(shortest[0], shortest[1]);
-            let vec2 = Vector.diff(shortest[0], center);
+            let vec1 = shortest[0].diff(shortest[1]);
+            let vec2 = shortest[0].diff(center);
             direction = Vector.tripleCross(vec1, vec2, vec1);
-            let A = this.#support(direction, hitbox.rotated);
+            let A = this._support(direction, hitbox.rotated);
             if (Vector.equals(A, shortest[0]) || Vector.equals(A, shortest[1])) {
                 let translationVect = direction.normalize(mindist);
                 return CollisionResult(true, translationVect, Vector.add(translationVect, this.parent.position), this.parent, hitbox.parent);
@@ -160,7 +160,7 @@ class HitBox {
      * @param {Vector} direction can be any nonzero length
      * @return {Vector} furthest point of shape in that direction
      */
-    #getFurthestPoint(polygon, direction) {
+    _getFurthestPoint(polygon, direction) {
         let max = 0;
         let result = new Vector(polygon[0].x, polygon[0].y);
         polygon.forEach(vertex => {
@@ -178,8 +178,8 @@ class HitBox {
      * @param {Vector[]} shape
      * @return {Vector} point on simplex in that direction
      */
-    #support(direction, shape) {
-        return this.#getFurthestPoint(this.rotated, direction).sub(this.#getFurthestPoint(shape, direction));
+    _support(direction, shape) {
+        return this._getFurthestPoint(this.rotated, direction).sub(this._getFurthestPoint(shape, direction));
     }
 
 }
