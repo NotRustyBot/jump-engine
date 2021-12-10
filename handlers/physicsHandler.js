@@ -58,17 +58,29 @@ class HitBox {
      * Implementation of GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
      */
     checkCollision(hitbox) {
-        let center = this.parent.position.diff(hitbox.parent.position); // in standart GJK it si zero
-        let direction = this.parent.position.diff(hitbox.parent.position);
-        let simplex = [this._support(direction, hitbox.rotated)];
+        let center = hitbox.parent.position.diff(this.parent.position); // in standart GJK it si zero
+        let direction = center.result();
+        let simplex = [this._support(direction.normalize(1), hitbox.rotated)];
         direction = center.diff(simplex[0]);
+        //console.log("resoluting collision, center = " + center);
+
         while (true) {
-            let A = this._support(direction, hitbox.rotated);
-            if (Vector.dot(center.diff(A), direction) <= 0)
+            let A = this._support(direction.normalize(1), hitbox.rotated);
+            //console.log("direction = ", direction.toString());
+            //console.log("A = ", A.toString());
+            //console.log("center.diff(A) = ", center.diff(A).toString());
+
+            if (Vector.dot(A.diff(center), direction) < 0) {
+                //console.log("dot = ", Vector.dot(center.diff(A), direction) + " => exitting");
                 return new CollisionResult(false);
+            }
             simplex.push(A);
+            //console.log("simplex = ", simplex);
             if (simplex.length == 2) {
                 direction = Vector.tripleCross(simplex[0], simplex[1], simplex[0]);
+                if (direction.length() < 0.0000001)
+                    direction = new Vector(-simplex[0].y, simplex[0].x);
+                //console.log("new direction from 2 = ", direction.toString());
             } else if (simplex.length == 3) {
                 let AB = simplex[1].diff(simplex[2]);
                 let AC = simplex[0].diff(simplex[2]);
@@ -76,14 +88,18 @@ class HitBox {
                 let ABcross = Vector.tripleCross(AC, AB, AB);
                 let ACcross = Vector.tripleCross(AB, AC, AC);
                 if (Vector.dot(ABcross, AO) > 0) {
+                    //console.log("first side");
                     simplex = [simplex[1], simplex[2]];
                     direction = ABcross;
                 } else if (Vector.dot(ACcross, AO) > 0) {
+                    //console.log("second side");
                     simplex = [simplex[0], simplex[2]];
                     direction = ACcross;
                 } else {
+                    //console.log("FOUND");
                     break; // center found in triangle!
                 }
+                console.log("new direction from 3 = ", direction.toString());
             } else {
                 throw new Error("Honza má chybu v chceckCollision funkci");
             }
@@ -93,8 +109,10 @@ class HitBox {
 
         let edges = []; // [[{Vector}, {Vector}, {number}],...]
         [[0, 1], [1, 2], [2, 0]].forEach(element => { edges.push([simplex[element[0]], simplex[element[1]], Vector.distanceToLine(simplex[element[0]], simplex[element[1]], center)]); });
+        //console.log("next phase: " + edges.toString());
         let i = 0; // debug
         while (true) {
+            //console.log("edges = " + edges);
             let shortest = [];
             let mindist = Infinity;
             edges.forEach(edge => {
@@ -106,10 +124,16 @@ class HitBox {
             let vec1 = shortest[0].diff(shortest[1]);
             let vec2 = shortest[0].diff(center);
             direction = Vector.tripleCross(vec1, vec2, vec1);
-            let A = this._support(direction, hitbox.rotated);
+            if (direction.length() < 0.0000001) {
+                direction = new Vector(vec1.y, -vec1.x);
+                //console.log("new direction from 2 = ", direction.toString());
+            }
+            let A = this._support(direction.normalize(1), hitbox.rotated);
+            // console.log("A = ", A.toString());
             if (Vector.equals(A, shortest[0]) || Vector.equals(A, shortest[1])) {
                 let translationVect = direction.normalize(mindist);
-                return CollisionResult(true, translationVect, Vector.add(translationVect, this.parent.position), this.parent, hitbox.parent);
+                //console.log("suggested tranlsation = " + translationVect);
+                return new CollisionResult(true, translationVect, Vector.add(translationVect, this.parent.position), this.parent, hitbox.parent);
             } else {
                 let B = shortest[0];
                 let C = shortest[1];
@@ -167,7 +191,7 @@ class HitBox {
             let len = Vector.dot(direction, vertex);
             if (len > max) {
                 max = len;
-                result = vertex;
+                result = vertex.result();
             }
         });
         return result;
@@ -179,7 +203,7 @@ class HitBox {
      * @return {Vector} point on simplex in that direction
      */
     _support(direction, shape) {
-        return this._getFurthestPoint(this.rotated, direction).sub(this._getFurthestPoint(shape, direction));
+        return this._getFurthestPoint(this.rotated, direction).sub(this._getFurthestPoint(shape, (new Vector(0, 0)).diff(direction)));
     }
 
 }

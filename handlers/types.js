@@ -94,9 +94,14 @@ class Vector {
     }
 
     static add(v1, v2) {
-        return Vector(v1.x + v2.x, v1.y + v2.y)
+        return new Vector(v1.x + v2.x, v1.y + v2.y)
     }
 
+    /**
+     * @param {Vector} v1
+     * @param {Vector} v2
+     * @returns {Number}
+     */
     static dot(v1, v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
@@ -109,7 +114,7 @@ class Vector {
      * https://www.youtube.com/watch?v=KHuI9bXZS74
      */
     static distanceToLine(A, B, C) {
-        return Math.abs((C.x - A.x) * (-B.y + A.x) + (C.y - A.y) * (B.x - A.x)) /
+        return Math.abs((C.x - A.x) * (-B.y + A.y) + (C.y - A.y) * (B.x - A.x)) /
             Math.sqrt((-B.y + A.y) * (-B.y + A.y) + (B.x - A.x) * (B.x - A.x));
     }
 
@@ -147,7 +152,7 @@ class Matrix2x2 {
      * @return {Vector}
      */
     transform(vect) {
-        return Vector([vect[0] * this.values[0][0] + vect[1] * this.values[0][1], vect[1] * this.values[1][0] + vect[2] * this.values[1][1]]);
+        return new Vector(vect.x * this.values[0][0] + vect.y * this.values[0][1], vect.x * this.values[1][0] + vect.y * this.values[1][1]);
     }
 }
 exports.Matrix2x2 = Matrix2x2;
