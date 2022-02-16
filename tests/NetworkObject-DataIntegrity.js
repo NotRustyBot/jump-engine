@@ -1,4 +1,4 @@
-const { Datagram, AutoView, datatype } = require("../handlers/networkHandler");
+const { Datagram, AutoView, datatype } = require("../datagram");
 const { Vector } = require("../handlers/types");
 const { assert } = require("./assert");
 

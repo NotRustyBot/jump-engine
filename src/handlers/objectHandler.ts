@@ -1,14 +1,16 @@
 /**
  * All game objects should inherit BaseObject
  */
-class BaseObject {
+export class BaseObject {
     /**@type {Map<number, BaseObject>} */
-    static baseObjects = new Map();
+    static baseObjects: Map<number, BaseObject> = new Map();
     static index = 0;
+    id: number;
+    tags: Set<Tag>;
+    tagBits: number;
 
     constructor() {
         this.id = BaseObject.index++;
-        /** @type {Set<Tag>} */
         this.tags = new Set();
         this.tagBits = 0;
     }
@@ -16,7 +18,7 @@ class BaseObject {
     /** Add a tag to this object
      * @param {Tag} tag
      */
-    tag(tag) {
+    tag(tag: Tag) {
         this.tagBits = this.tagBits | tag.bitMask;
         this.tags.add(tag);
         tag.members.add(this);
@@ -25,7 +27,7 @@ class BaseObject {
     /** Remove a tag from this object
      * @param {Tag} tag
      */
-    untag(tag) {
+    untag(tag: Tag) {
         this.tagBits = this.tagBits & ~tag.bitMask;
         this.tags.delete(tag);
         tag.members.delete(this);
@@ -35,7 +37,7 @@ class BaseObject {
     * @param {Tag} tag
     * @returns {boolean} `true` if object has this tag
     */
-    hasTag(tag) {
+    hasTag(tag: Tag): boolean {
         //return this.tags.has(tag);
         return (this.tagBits & tag.bitMask) != 0;
     }
@@ -44,13 +46,13 @@ class BaseObject {
      * Removes this object 
      */
     remove() {
-        BaseObject.baseObjects.delete(this);
+        BaseObject.baseObjects.delete(this.id);
     }
 }
 
-exports.BaseObject = BaseObject;
-
-class Tag {
+export class Tag {
+    members: Set<unknown>;
+    bitMask: number;
     constructor() {
         if (Tag.bitIndex > 31) {
             throw new Error("Cannot create more than 32 tags.");
@@ -58,8 +60,8 @@ class Tag {
 
         /**@type {Set<BaseObject>} Set of all objects with this tag */
         this.members = new Set();
-        this.bitIndex = Tag.bitIndex++;
-        this.bitMask = 1 << this.bitIndex;
+        Tag.bitIndex = Tag.bitIndex++;
+        this.bitMask = 1 << Tag.bitIndex;
     }
 
     /** Creates new array containing only tagged objects
@@ -67,7 +69,7 @@ class Tag {
      * @param {Tag} tag
      * @returns {BaseObject[]} filtered array
      */
-    static filter(set, tag) {
+    static filter(set: Array<BaseObject>, tag: Tag): BaseObject[] {
         let output = [];
 
         for (const e of set) {
@@ -80,12 +82,12 @@ class Tag {
     }
 
     /** Runs `func` for every tagged member of `set`
-     * @param {ArrayLike<BaseObject>} set
-     * @param {tag} tag
+     * @param {Array<BaseObject>} set
+     * @param {Tag} tag
      * @param {Function} func
      */
 
-    static for(set, tag, func) {
+    static for(set: Array<BaseObject>, tag: Tag, func: Function) {
         for (const e of set) {
             if (e.hasTag(tag)) {
                 func(e);
@@ -95,5 +97,3 @@ class Tag {
 
     static bitIndex = 0;
 }
-
-exports.Tag = Tag;

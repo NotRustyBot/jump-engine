@@ -2,9 +2,10 @@
   "name": "jump-engine",
   "version": "1.0.0",
   "description": "Engine for Jumpout",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "node tests/tests.js"
+    "test": "node tests/tests.js",
+    "install": "tsc"
   },
   "author": "",
   "license": "ISC",

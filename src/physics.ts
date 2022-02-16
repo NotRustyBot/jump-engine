@@ -1,35 +1,25 @@
-const { BaseObject } = require("./objectHandler");
-const { Vector, Matrix2x2 } = require("./types");
-const { UpdateHandler } = require("./updateHandler");
+import { Component } from "./component";
+import { BaseObject } from "./handlers/objectHandler";
+import { Matrix2x2, Vector } from "./handlers/types";
 
-class PhysicsObject extends BaseObject {
-    constructor() {
-        super();
-        this.position = new Vector();
-        /**@type {Layer} */
-        this.layer;
-        /**@type {Set<Area>} */
-        this.inAreas = new Set();
-        /** @type {number} */
-        this.rotation;
-        /**
-         * @type {number} `READ ONLY` length of the bounding box
-         */
-        this.size = 0;
-        this._boundOffsets = [
-            new Vector(0, 0),
-            new Vector(0, 0),
-            new Vector(0, 0),
-            new Vector(0, 0),
-        ];
+export class PhysicsObject extends Component {
+    position: Vector = new Vector();
+    layer: Layer;
+    inAreas: Set<Area> = new Set();
+    rotation: number = 0;
+    size: number = 0;
+    boundOffsets: Vector[];
+    constructor(parent: BaseObject) {
+        super(parent);
     }
 
-    /**
-     * @param {number} size
-     */
-    setSize(size) {
+    init(){
+        Layer.addObject(this);
+    }
+
+    setSize(size: number) {
         this.size = size;
-        this._boundOffsets = [
+        this.boundOffsets = [
             new Vector(size, size),
             new Vector(-size, size),
             new Vector(-size, -size),
@@ -38,27 +28,74 @@ class PhysicsObject extends BaseObject {
     }
 }
 
-exports.PhysicsObject = PhysicsObject;
+export class MovingObject extends PhysicsObject{
+    velocity: Vector = new Vector();
+    constructor(parent: BaseObject) {
+        super(parent);
+    }
+    update(dt: number) {
+        if (this.velocity.x + this.velocity.y != 0) {
+            let next = this.position.result().add(this.velocity.result().mult(dt));
+            Layer.moveObject(this, next);
+        }
+    }
+}
 
-class HitBox {
-    /**
-     * @param {PhysicsObject} parent
-     * @param {Vector[]} polygon
-     */
-    constructor(parent, polygon) {
+export class CollisionResult {
+    hit: boolean;
+    overlap: Vector;
+    position: Vector;
+    object1: PhysicsObject;
+    object2: PhysicsObject;
+    constructor(hit: boolean, overlap?: Vector, position?: Vector, object1?: PhysicsObject, object2?: PhysicsObject) {
+        this.hit = hit;
+        this.overlap = overlap;
+        this.position = position;
+        this.object1 = object1;
+        this.object2 = object2;
+    }
+}
+
+export class Area {
+    members: Set<PhysicsObject> = new Set();
+    gridPosition: Vector;
+    positionIndex: number;
+    layer: Layer;
+    constructor(layer: Layer, position: Vector) {
+        this.gridPosition = new Vector(position.x, position.y);
+        this.positionIndex = Layer.toGridIndex(this.gridPosition);
+        this.layer = layer;
+        layer.areas.set(this.positionIndex, this);
+    }
+
+    addObject(physicsObject: PhysicsObject) {
+        this.members.add(physicsObject);
+        physicsObject.inAreas.add(this);
+    }
+
+    static size = 1000;
+}
+
+export class HitBox extends Component {
+    polygon: Vector[];
+    rotated: Vector[];
+    size: number;
+    physicsObject: PhysicsObject;
+
+    constructor(parent: BaseObject, polygon?: Vector[]) {
+        super(parent);
         this.polygon = polygon;
         this.rotated = polygon;
         this.size = 0;
-        this.parent = parent;
     }
 
-    /**
-     * @param {HitBox} hitbox
-     * @returns {CollisionResult}
-     * Implementation of GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
-     */
-    checkCollision(hitbox) {
-        let center = hitbox.parent.position.diff(this.parent.position); // in standart GJK it si zero
+    init(physicsObject: PhysicsObject){
+        this.physicsObject = physicsObject;
+    }
+
+    //Implementation of GJK algorithm https://www.youtube.com/watch?v=ajv46BSqcK4
+    checkCollision(hitbox: HitBox): CollisionResult {
+        let center = hitbox.physicsObject.position.diff(this.physicsObject.position); // in standart GJK it si zero
         let direction = center.result();
         let simplex = [this._support(direction.normalize(1), hitbox.rotated)];
         direction = center.diff(simplex[0]);
@@ -107,13 +144,13 @@ class HitBox {
 
         // here ends GJK algorithm and start my algorithm
 
-        let edges = []; // [[{Vector}, {Vector}, {number}],...]
+        let edges:any[] = []; // [[{Vector}, {Vector}, {number}],...]
         [[0, 1], [1, 2], [2, 0]].forEach(element => { edges.push([simplex[element[0]], simplex[element[1]], Vector.distanceToLine(simplex[element[0]], simplex[element[1]], center)]); });
         //console.log("next phase: " + edges.toString());
         let i = 0; // debug
         while (true) {
             //console.log("edges = " + edges);
-            let shortest = [];
+            let shortest:any[] = [];
             let mindist = Infinity;
             edges.forEach(edge => {
                 if (edge[2] < mindist) {
@@ -133,7 +170,7 @@ class HitBox {
             if (Vector.equals(A, shortest[0]) || Vector.equals(A, shortest[1])) {
                 let translationVect = direction.normalize(mindist);
                 //console.log("suggested tranlsation = " + translationVect);
-                return new CollisionResult(true, translationVect, Vector.add(translationVect, this.parent.position), this.parent, hitbox.parent);
+                return new CollisionResult(true, translationVect, Vector.add(translationVect, this.physicsObject.position), this.physicsObject, hitbox.physicsObject);
             } else {
                 let B = shortest[0];
                 let C = shortest[1];
@@ -153,13 +190,14 @@ class HitBox {
      * @param {Vector} to
      * @returns {boolean | Vector} false or hit position
      */
-    rayCast(from, to) { }
+    rayCast(from: Vector, to: Vector): boolean | Vector { throw new Error("not implemented");
+     }
 
     /**
      * @param {Vector[]} polygon
      * @returns {number} side of smallest AABB that the polygon can always fit
      */
-    static getSize(polygon) {
+    static getSize(polygon: Vector[]): number {
         let max = 0;
         polygon.forEach(vertex => {
             let length = vertex.length();
@@ -171,7 +209,7 @@ class HitBox {
     /**
      * @param {number} angle
      */
-    rotatePolygon(angle) {
+    rotatePolygon(angle: number) {
         let matrix = Matrix2x2.fromAngle(angle);
         this.rotated = [];
         this.polygon.forEach(vertex => {
@@ -184,7 +222,7 @@ class HitBox {
      * @param {Vector} direction can be any nonzero length
      * @return {Vector} furthest point of shape in that direction
      */
-    _getFurthestPoint(polygon, direction) {
+    _getFurthestPoint(polygon: Vector[], direction: Vector): Vector {
         let max = 0;
         let result = new Vector(polygon[0].x, polygon[0].y);
         polygon.forEach(vertex => {
@@ -202,100 +240,21 @@ class HitBox {
      * @param {Vector[]} shape
      * @return {Vector} point on simplex in that direction
      */
-    _support(direction, shape) {
+    _support(direction: Vector, shape: Vector[]): Vector {
         return this._getFurthestPoint(this.rotated, direction).sub(this._getFurthestPoint(shape, (new Vector(0, 0)).diff(direction)));
     }
 
 }
-exports.HitBox = HitBox;
 
-class CollisionResult {
-    /**
-     * @param {boolean} hit
-     * @param {Vector} overlap
-     * @param {Vector} position
-     * @param {PhysicsObject} object1
-     * @param {PhysicsObject} object2
-     */
-    constructor(hit, overlap, position, object1, object2) {
-        /** @type {boolean} */
-        this.hit = hit;
-        /** @type {Vector} o tolik budu posouvat objekty*/
-        this.overlap = overlap;
-        /** @type {Vector} tady budu spawnovat pártikly*/
-        this.position = position;
-        /** @type {PhysicsObject} parent hitboxu*/
-        this.object1 = object1;
-        /** @type {PhysicsObject} parent hitboxu*/
-        this.object2 = object2;
-    }
-}
-
-exports.CollisionResult = CollisionResult;
-
-class MobileObject extends PhysicsObject {
+export class Layer {
+    areas: Map<number, Area>;
     constructor() {
-        super();
-        this.velocity = new Vector();
-        UpdateHandler.register(
-            /**@param {Number} dt*/(dt) => {
-                this.moveUpdate();
-            },
-            UpdateHandler.layersEnum.physics
-        );
-    }
-    /**
-     * @param {number} dt
-     */
-    moveUpdate(dt) {
-        if (this.velocity.x + this.velocity.y != 0) {
-            let next = this.position.result().add(this.velocity.result().mult(dt));
-            Layer.moveObject(this, next);
-        }
-    }
-}
-
-exports.MobileObject = MobileObject;
-
-class Area {
-    /**
-     * @param {Layer} layer
-     * @param {Vector} position
-     */
-    constructor(layer, position) {
-        /**@type {Set<PhysicsObject>} */
-        this.members = new Set();
-        this.gridPosition = new Vector(position.x, position.y);
-        this.positionIndex = Layer.toGridIndex(this.gridPosition);
-        this.layer = layer;
-        layer.areas.set(this.positionIndex, this);
-    }
-
-    /**
-     * @param {PhysicsObject} physicsObject
-     */
-    addObject(physicsObject) {
-        this.members.add(physicsObject);
-        physicsObject.inAreas.add(this);
-    }
-
-    static size = 1000;
-}
-exports.Area = Area;
-
-class Layer {
-    constructor() {
-        /**@type {Map<number,Area>} */
         this.areas = new Map();
     }
 
-    /**@type {Set<Layer>} */
-    static layers = new Set();
+    static layers: Set<Layer> = new Set();
 
-    /**
-     * @param {PhysicsObject} physicsObject
-     */
-    static addObject(physicsObject) {
+    static addObject(physicsObject: PhysicsObject) {
         let layer = physicsObject.layer;
         let gridCoords = Layer.toGrid(physicsObject.position);
         let gridIndex = Layer.toGridIndex(gridCoords);
@@ -350,7 +309,7 @@ class Layer {
         }
 
         if (top && left) {
-            grc = new Vector(gridCoords.x - 1, gridCoords.y + 1);
+            gridCoords = new Vector(gridCoords.x - 1, gridCoords.y + 1);
             gridIndex = Layer.toGridIndex(gridCoords);
             area = layer.areas.get(gridIndex) || new Area(layer, gridCoords);
             area.addObject(physicsObject);
@@ -371,36 +330,24 @@ class Layer {
         }
     }
 
-    /**
-     * @param {PhysicsObject} physicsObject
-     */
-    static removeObject(physicsObject) {
+    static removeObject(physicsObject: PhysicsObject) {
         for (const area of physicsObject.inAreas) {
             area.members.delete(physicsObject);
         }
         physicsObject.inAreas.clear();
     }
 
-    /**
-     * @param {Layer} layer
-     * @param {Vector} position
-     * @returns {Set<PhysicsObject>}
-     */
-    static getObjects(layer, position) {
+    static getObjects(layer: Layer, position: Vector) {
         let area = layer.areas.get(Layer.toGridIndex(Layer.toGrid(position)));
         if (area == undefined) return new Set();
         return area.members;
     }
 
-    /**
-     * @param {PhysicsObject} physicsObject
-     * @param {Vector} position
-     */
-    static moveObject(physicsObject, position) {
+    static moveObject(physicsObject: PhysicsObject, position: Vector) {
         const orig = physicsObject.position;
         let updateRequired = false;
-        for (let i = 0; i < physicsObject._boundOffsets.length; i++) {
-            const vect = physicsObject._boundOffsets[i];
+        for (let i = 0; i < physicsObject.boundOffsets.length; i++) {
+            const vect = physicsObject.boundOffsets[i];
             if (
                 this.toGridAxis(orig.x + vect.x) != this.toGridAxis(position.x + vect.x) ||
                 this.toGridAxis(orig.y + vect.y) != this.toGridAxis(position.y + vect.y)
@@ -419,29 +366,15 @@ class Layer {
         }
     }
 
-    /**
-     * @param {number} scalar
-     * @returns {number}
-     */
-    static toGridAxis(scalar) {
+    static toGridAxis(scalar: number): number {
         return Math.floor(scalar / Area.size);
     }
 
-    /**
-     * @param {Vector} position
-     * @returns {Vector} position in Area grid
-     */
-    static toGrid(position) {
+    static toGrid(position: Vector): Vector {
         return new Vector(Layer.toGridAxis(position.x), Layer.toGridAxis(position.y));
     }
-
-    /**
-     * @param {Vector} vector
-     * @returns {number}
-     */
-    static toGridIndex(vector) {
+    
+    static toGridIndex(vector: Vector): number {
         return ((vector.x & 0xffff) << 16) | (vector.y & 0xffff);
     }
 }
-
-exports.Layer = Layer;

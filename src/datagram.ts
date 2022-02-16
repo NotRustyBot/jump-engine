@@ -1,61 +1,47 @@
-/**@typedef {number} types */
+import { Vector } from "./handlers/types";
 
-const { Vector } = require("./types");
+export enum datatype {
+    int8 = 0,
+    uint8 = 1,
+    int16 = 2,
+    uint16 = 3,
+    int32 = 4,
+    uint32 = 5,
+    bigInt64 = 6,
+    bigUint64 = 7,
+    float32 = 8,
+    float64 = 9,
+    string = 10,
+    vector32 = 11,
+    vector64 = 12,
+    array = 13,
+}
 
-/**@enum {types} */
-let datatype = {
-    int8: 0,
-    uint8: 1,
-    int16: 2,
-    uint16: 3,
-    int32: 4,
-    uint32: 5,
-    bigInt64: 6,
-    bigUint64: 7,
-    float32: 8,
-    float64: 9,
-    string: 10,
-    vector32: 11,
-    vector64: 12,
-    array: 13,
-};
-exports.datatype = datatype;
-
-class Datagram {
+export class Datagram {
     static index = 0;
-    /**@type {Map<number,Datagram>} */
-    static datagrams = new Map();
+    static datagrams: Map<number, Datagram> = new Map();
+    names: string[];
+    types: datatype[];
+    datagrams: Map<number, Datagram> = new Map();
     constructor() {
         this.names = [];
         this.types = [];
-        /**@type {Map<number,Datagram>} */
-        this.datagrams = new Map();
     }
 
-    /**
-     * @param {string} name
-     * @param {types} type
-     * @returns {Datagram} this
-     */
-    addField(name, type) {
+    addField(name: string, type: datatype): Datagram {
         this.names.push(name);
         this.types.push(type);
         return this;
     }
 
-    addArray(name, datagram){
-        this.datagrams.set(this.names.length, datagram)
+    addArray(name: string, datagram: Datagram) {
+        this.datagrams.set(this.names.length, datagram);
         this.names.push(name);
         this.types.push(datatype.array);
         return this;
     }
-    
 
-    /**
-     * @param {AutoView} view
-     * @param obj
-     */
-    serialise(view, obj) {
+    serialise(view: AutoView, obj: any) {
         for (let i = 0; i < this.names.length; i++) {
             const field = this.names[i];
             view.setValue[this.types[i]](obj[field], this.datagrams.get(i));
@@ -67,7 +53,7 @@ class Datagram {
      * @param {object} [obj]
      * @returns {object} same as input, if supplied.
      */
-    deserealise(view, obj) {
+    deserealise(view: AutoView, obj?: any): object {
         let out = obj || {};
         for (let i = 0; i < this.names.length; i++) {
             const field = this.names[i];
@@ -78,11 +64,9 @@ class Datagram {
     }
 }
 
-exports.Datagram = Datagram;
-
-class AutoView extends DataView {
-    /**@param {ArrayBufferLike} buffer */
-    constructor(buffer) {
+export class AutoView extends DataView {
+    index: number;
+    constructor(buffer: ArrayBuffer) {
         super(buffer);
         this.index = 0;
     }
@@ -90,7 +74,7 @@ class AutoView extends DataView {
     /**
      * @param {string} value
      */
-    setString(offset, value) {
+    setString(offset: number, value: string) {
         this.setUint16(offset, value.length);
         offset += 2;
         for (let i = 0; i < value.length; i++) {
@@ -99,30 +83,25 @@ class AutoView extends DataView {
         }
     }
 
-    /**
-     * @param {number} offset
-     * @param {ArrayLike<object>} value
-     * @param {Datagram} datagram
-     */
-    setArray(offset, value, datagram) {
+    setArray(offset: number, value: Array<object>, datagram: Datagram) {
         let tempindex = this.index;
         this.index = offset;
         this.writeArray(value, datagram);
         this.index = tempindex;
     }
 
-    setVector32(offset, value) {
+    setVector32(offset: number, value: Vector) {
         this.setFloat32(offset, value.x);
         offset += 4;
         this.setFloat32(offset, value.y);
     }
-    setVector64(offset, value) {
+    setVector64(offset: number, value: Vector) {
         this.setFloat64(offset, value.x);
         offset += 4;
         this.setFloat64(offset, value.y);
     }
 
-    getString(offset) {
+    getString(offset: number) {
         let length = this.getUint16(offset);
         offset += 2;
         let array = [];
@@ -133,100 +112,91 @@ class AutoView extends DataView {
         return array.join("");
     }
 
-    /**
-     * @param {number} offset
-     * @param {Datagram} datagram
-     * @returns {object[]}
-     */
-    getArray(offset, datagram) {
-        let out;
+    getArray(offset: number, datagram: Datagram): object[] {
+        let out: object[];
         let tempindex = this.index;
         this.index = offset;
         out = this.readArray(datagram);
         return out;
     }
 
-    getVector32(offset) {
+    getVector32(offset: number): Vector {
         return new Vector(this.getFloat32(offset), this.getFloat32(offset + 4));
     }
 
-    getVector64(offset) {
+    getVector64(offset: number): Vector {
         return new Vector(this.getFloat64(offset), this.getFloat64(offset + 4));
     }
 
-    readInt8() {
+    readInt8(): number {
         let out = this.getInt8(this.index);
         this.index += 1;
         return out;
     }
-    readUint8() {
+    readUint8(): number {
         let out = this.getUint8(this.index);
         this.index += 1;
         return out;
     }
-    readInt16() {
+    readInt16(): number {
         let out = this.getInt16(this.index);
         this.index += 2;
         return out;
     }
-    readUint16() {
+    readUint16(): number {
         let out = this.getUint16(this.index);
         this.index += 2;
         return out;
     }
-    readInt32() {
+    readInt32(): number {
         let out = this.getInt32(this.index);
         this.index += 4;
         return out;
     }
-    readUint32() {
+    readUint32(): number {
         let out = this.getUint32(this.index);
         this.index += 4;
         return out;
     }
-    readFloat32() {
+    readFloat32(): number {
         let out = this.getFloat32(this.index);
         this.index += 4;
         return out;
     }
-    readBigInt64() {
+    readBigInt64(): bigint {
         let out = this.getBigInt64(this.index);
         this.index += 8;
         return out;
     }
-    readBigUint64() {
+    readBigUint64(): bigint {
         let out = this.getBigUint64(this.index);
         this.index += 8;
         return out;
     }
-    readFloat64() {
+    readFloat64(): number {
         let out = this.getFloat64(this.index);
         this.index += 8;
         return out;
     }
-    readString() {
+    readString(): string {
         let out = this.getString(this.index);
         this.index += 2 + out.length * 2;
         return out;
     }
 
-    readVector32() {
+    readVector32(): Vector {
         let out = this.getVector32(this.index);
         this.index += 8;
         return out;
     }
 
-    readVector64() {
+    readVector64(): Vector {
         let out = this.getVector64(this.index);
         this.index += 16;
         return out;
     }
 
-    /**
-     * @param {Datagram} datagram
-     * @returns {object[]}
-     */
-    readArray(datagram) {
+    readArray(datagram: Datagram): object[] {
         let out = [];
         let length = this.readUint32();
         for (let i = 0; i < length; i++) {
@@ -235,55 +205,55 @@ class AutoView extends DataView {
         return out;
     }
 
-    writeInt8(value) {
+    writeInt8(value: number) {
         this.setInt8(this.index, value);
         this.index += 1;
     }
-    writeUint8(value) {
+    writeUint8(value: number) {
         this.setUint8(this.index, value);
         this.index += 1;
     }
-    writeInt16(value) {
+    writeInt16(value: number) {
         this.setInt16(this.index, value);
         this.index += 2;
     }
-    writeUint16(value) {
+    writeUint16(value: number) {
         this.setUint16(this.index, value);
         this.index += 2;
     }
-    writeInt32(value) {
+    writeInt32(value: number) {
         this.setInt32(this.index, value);
         this.index += 4;
     }
-    writeUint32(value) {
+    writeUint32(value: number) {
         this.setUint32(this.index, value);
         this.index += 4;
     }
-    writeFloat32(value) {
+    writeFloat32(value: number) {
         this.setFloat32(this.index, value);
         this.index += 4;
     }
-    writeBigInt64(value) {
+    writeBigInt64(value: bigint) {
         this.setBigInt64(this.index, value);
         this.index += 8;
     }
-    writeBigUint64(value) {
+    writeBigUint64(value: bigint) {
         this.setBigUint64(this.index, value);
         this.index += 8;
     }
-    writeFloat64(value) {
+    writeFloat64(value: number) {
         this.setFloat64(this.index, value);
         this.index += 8;
     }
-    writeString(value) {
+    writeString(value: string) {
         this.setString(this.index, value);
         this.index += 2 + value.length * 2;
     }
-    writeVector32(value) {
+    writeVector32(value: Vector) {
         this.setVector32(this.index, value);
         this.index += 8;
     }
-    writeVector64(value) {
+    writeVector64(value: Vector) {
         this.setVector64(this.index, value);
         this.index += 16;
     }
@@ -291,54 +261,54 @@ class AutoView extends DataView {
      * @param {ArrayLike<object>} value
      * @param {Datagram} datagram
      */
-    writeArray(value, datagram) {
+    writeArray(value: Array<object>, datagram: Datagram) {
         this.writeUint32(value.length);
         for (const obj of value) {
             datagram.serialise(this, obj);
         }
     }
 
-    setValue = [
-        (value) => {
+    setValue: Array<(value: any, datagram?: Datagram) => void> = [
+        (value: number) => {
             this.writeInt8(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeUint8(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeInt16(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeUint16(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeInt32(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeUint32(value);
         },
-        (value) => {
+        (value: bigint) => {
             this.writeBigInt64(value);
         },
-        (value) => {
+        (value: bigint) => {
             this.writeBigUint64(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeFloat32(value);
         },
-        (value) => {
+        (value: number) => {
             this.writeFloat64(value);
         },
-        (value) => {
+        (value: string) => {
             this.writeString(value);
         },
-        (value) => {
+        (value: Vector) => {
             this.writeVector32(value);
         },
-        (value) => {
+        (value: Vector) => {
             this.writeVector64(value);
         },
-        (value, datagram) => {
+        (value: Array<any>, datagram?: Datagram) => {
             this.writeArray(value, datagram);
         },
     ];
@@ -383,24 +353,8 @@ class AutoView extends DataView {
         () => {
             return this.readVector64();
         },
-        (datagram) => {
+        (datagram: Datagram) => {
             return this.readArray(datagram);
         },
     ];
-}
-exports.AutoView = AutoView;
-
-class Scheme {
-    constructor() {
-        /** @type {Map<number,Datagram>} */
-        this.stages = new Map();
-    }
-
-    /**
-     * @param {number} id
-     * @param {Datagram} datagram
-     */
-    addStage(id, datagram) {
-        this.stages.set(id, datagram);
-    }
 }
