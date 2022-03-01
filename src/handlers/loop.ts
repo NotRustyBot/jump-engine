@@ -16,7 +16,7 @@ class Loop {
         loop.update();
     }
     lastTick: number;
-    updateOrder: Array<(dt: number) => void>;
+    updateOrder: Array<(dt: number) => void> = [];
 }
 export const loop = new Loop();
 
