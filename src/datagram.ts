@@ -50,10 +50,10 @@ export class Datagram {
 
     /**
      * @param {AutoView} view
-     * @param {object} [obj]
-     * @returns {object} same as input, if supplied.
+     * @param {any} [obj]
+     * @returns {any} same as input, if supplied.
      */
-    deserealise(view: AutoView, obj?: any): object {
+    deserealise(view: AutoView, obj?: any): any {
         let out = obj || {};
         for (let i = 0; i < this.names.length; i++) {
             const field = this.names[i];
