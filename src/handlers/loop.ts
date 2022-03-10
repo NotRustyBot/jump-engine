@@ -25,16 +25,18 @@ export class Timer {
     delay: number;
     time: number;
     repeat: number;
+    forever: boolean;
     /**
      * @param {Function} func
      * @param {number} delay
-     * @param {number} repeat
+     * @param {number} repeat 0 means forever
      */
     constructor(func: Function, delay: number = 0, repeat: number = 1) {
         this.func = func;
         this.delay = delay;
         this.time = this.delay;
         this.repeat = repeat;
+        this.forever = repeat == 0;
     }
 
     /** @type {Set<Timer>}*/
@@ -44,7 +46,7 @@ export class Timer {
             if (timer.time <= 0) {
                 timer.repeat--;
                 timer.func(dt);
-                if (timer.repeat > 0) {
+                if (timer.repeat > 0 || timer.forever) {
                     timer.time = timer.delay + timer.time;
                 } else {
                     Timer.timers.delete(timer);
