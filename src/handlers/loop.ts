@@ -37,6 +37,7 @@ export class Timer {
         this.time = this.delay;
         this.repeat = repeat;
         this.forever = repeat == 0;
+        Timer.timers.add(this);
     }
 
     /** @type {Set<Timer>}*/
