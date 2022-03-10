@@ -8,6 +8,10 @@ export class Vector {
         this.y = y;
     }
 
+    xy(): [number, number] {
+        return [this.x, this.y];
+    }
+
     length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
