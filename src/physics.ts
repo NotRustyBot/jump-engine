@@ -190,7 +190,8 @@ export class HitBox extends Component {
      * @param {Vector} to
      * @returns {boolean | Vector} false or hit position
      */
-    rayCast(from: Vector, to: Vector): boolean | Vector { throw new Error("not implemented");
+    rayCast(from: Vector, to: Vector): boolean | Vector {
+         throw new Error("not implemented");
      }
 
     /**
