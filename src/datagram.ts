@@ -392,7 +392,7 @@ export class AutoView extends DataView {
             return this.readArray(datagram);
         },
         (datagram: Datagram) => {
-            return this.readArray(datagram);
+            return this.readIndexable(datagram);
         },
     ];
 }
