@@ -15,6 +15,7 @@ export enum datatype {
     vector32 = 11,
     vector64 = 12,
     array = 13,
+    indexable = 14,
 }
 
 export class Datagram {
@@ -38,6 +39,13 @@ export class Datagram {
         this.datagrams.set(this.names.length, datagram);
         this.names.push(name);
         this.types.push(datatype.array);
+        return this;
+    }
+
+    addIndexable(name: string, datagram: Datagram) {
+        this.datagrams.set(this.names.length, datagram);
+        this.names.push(name);
+        this.types.push(datatype.indexable);
         return this;
     }
 
@@ -83,10 +91,17 @@ export class AutoView extends DataView {
         }
     }
 
-    setArray(offset: number, value: Array<object>, datagram: Datagram) {
+    setArray(offset: number, value: Array<any>, datagram: Datagram) {
         let tempindex = this.index;
         this.index = offset;
         this.writeArray(value, datagram);
+        this.index = tempindex;
+    }
+
+    setIndexable(offset: number, value: Map<number, any>, datagram: Datagram) {
+        let tempindex = this.index;
+        this.index = offset;
+        this.writeIndexable(value, datagram);
         this.index = tempindex;
     }
 
@@ -196,11 +211,20 @@ export class AutoView extends DataView {
         return out;
     }
 
-    readArray(datagram: Datagram): object[] {
+    readArray(datagram: Datagram): any[] {
         let out = [];
         let length = this.readUint32();
         for (let i = 0; i < length; i++) {
             out.push(datagram.deserealise(this));
+        }
+        return out;
+    }
+
+    readIndexable(datagram: Datagram): Map<number,any> {
+        let out = new Map;
+        let length = this.readUint32();
+        for (let i = 0; i < length; i++) {
+            out.set(this.readInt32(),datagram.deserealise(this));
         }
         return out;
     }
@@ -258,12 +282,20 @@ export class AutoView extends DataView {
         this.index += 16;
     }
     /**
-     * @param {ArrayLike<object>} value
+     * @param {ArrayLike<any>} value
      * @param {Datagram} datagram
      */
-    writeArray(value: Array<object>, datagram: Datagram) {
+    writeArray(value: Array<any>, datagram: Datagram) {
         this.writeUint32(value.length);
         for (const obj of value) {
+            datagram.serialise(this, obj);
+        }
+    }
+
+    writeIndexable(value: Map<number, any>, datagram: Datagram) {
+        this.writeUint32(value.size);
+        for (const [id, obj] of value) {
+            this.writeInt32(id);
             datagram.serialise(this, obj);
         }
     }
@@ -311,6 +343,9 @@ export class AutoView extends DataView {
         (value: Array<any>, datagram?: Datagram) => {
             this.writeArray(value, datagram);
         },
+        (value: Map<number,any>, datagram?: Datagram) => {
+            this.writeIndexable(value, datagram);
+        },
     ];
 
     getValue = [
@@ -352,6 +387,9 @@ export class AutoView extends DataView {
         },
         () => {
             return this.readVector64();
+        },
+        (datagram: Datagram) => {
+            return this.readArray(datagram);
         },
         (datagram: Datagram) => {
             return this.readArray(datagram);
