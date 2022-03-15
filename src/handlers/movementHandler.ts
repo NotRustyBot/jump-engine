@@ -36,36 +36,36 @@ export class MovementHandler extends Component {
         };
     }
 
-    forward(dt: number, throttle: number) {
+    forward(dt: number, throttle?: number) {
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.movingObject.rotation);
         this.movingObject.velocity.add(direction.mult(dt * throttle * this.powerBonus));
     }
 
-    backward(dt: number, throttle: number) {
+    backward(dt: number, throttle?: number) {
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.movingObject.rotation + Math.PI);
         this.movingObject.velocity.add(direction.mult(dt * throttle * this.powerBonus));
     }
 
-    left(dt: number, throttle: number) {
+    left(dt: number, throttle?: number) {
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.movingObject.rotation + (Math.PI * 3) / 2);
         this.movingObject.velocity.add(direction.mult(dt * throttle * this.powerBonus));
     }
 
-    right(dt: number, throttle: number) {
+    right(dt: number, throttle?: number) {
         throttle = throttle || 1;
         let direction = Vector.fromAngle(this.movingObject.rotation + Math.PI / 2);
         this.movingObject.velocity.add(direction.mult(dt * throttle * this.powerBonus));
     }
 
-    clockwise(dt: number, throttle: number) {
+    clockwise(dt: number, throttle?: number) {
         throttle = throttle || 1;
         this.movingObject.rotation += this.stats.rotationSpeed * dt * throttle * this.rotationBonus;
     }
 
-    anticlockwise(dt: number, throttle: number) {
+    anticlockwise(dt: number, throttle?: number) {
         throttle = throttle || 1;
         this.movingObject.rotation -= this.stats.rotationSpeed * dt * throttle * this.rotationBonus;
     }
