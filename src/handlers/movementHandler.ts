@@ -29,11 +29,11 @@ export class MovementHandler extends Component {
         stats = stats || {};
         this.movingObject = movingObject;
         this.stats = {
-            enginePower: stats?.enginePower ?? 100,
-            reversePower: stats?.reversePower ?? 50,
-            sidePower: stats?.sidePower ?? 25,
-            speedCap: stats?.speedCap ?? 1000,
-            rotationSpeed: stats?.rotationSpeed ?? 3,
+            enginePower: stats.enginePower ?? 100,
+            reversePower: stats.reversePower ?? 50,
+            sidePower: stats.sidePower ?? 25,
+            speedCap: stats.speedCap ?? 1000,
+            rotationSpeed: stats.rotationSpeed ?? 3,
         };
     }
 
