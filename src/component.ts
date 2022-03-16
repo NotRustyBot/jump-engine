@@ -5,10 +5,9 @@ export class Component {
     parent: BaseObject;
 
     private static index: number = 0;
-    static components: Component[] = [];
+    static components: Map<number,Component> = new Map();
     constructor(parent: BaseObject) {
         this.componentId = Component.index;
-        Component.components[this.componentId] = this;
         Component.index++;
         this.parent = parent;
     }
